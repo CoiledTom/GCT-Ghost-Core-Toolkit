@@ -141,7 +141,6 @@ local Config = {
 			warning     = { soundId = "rbxassetid://9112979237", volume = 0.45, pitch = 0.85, loop = true,  duration = 1.0 },
 		},
 	},
-	},
 
 	-- Fotos dos executores (repositorio no GitHub).
 	-- Baixa a foto do executor detectado (identifyexecutor); sem foto usa "erro".
