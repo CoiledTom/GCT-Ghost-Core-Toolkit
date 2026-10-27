@@ -41,7 +41,8 @@ local DefaultConfig = {
 	},
 
 	-- Tema visual: escolha o nome aqui. So o dono do script edita isto.
-	-- Opcoes: "obsidian" (padrao), "natal", "halloween", "crimson", "candy", "sakura", "black", "white", "gold"
+	-- Opcoes: "obsidian" (padrao), "natal", "halloween", "crimson", "candy", "sakura", "black", "white", "gold",
+	-- "ocean", "forest", "cyberpunk", "royal", "mono"
 	Theme = "obsidian",
 
 	-- Cada tema define o mesmo conjunto de chaves (Bg/Panel/Card/Field/Stroke/Violet/Purple/Electric/Orange/Success/Error/Text/Muted).
@@ -92,6 +93,31 @@ local DefaultConfig = {
 			Violet = "D4AF37", Purple = "8A6D1F", Electric = "F2D77E", Orange = "D4AF37",
 			Success = "34D399", Error = "F87171", Text = "F5F0E6", Muted = "A69C85",
 		},
+		ocean = { -- azul profundo/ciano, sobre grafite escuro
+			Bg = "06090C", Panel = "0E1620", Card = "14202E", Field = "0A131B", Stroke = "28445A",
+			Violet = "2563EB", Purple = "1E3A8A", Electric = "38BDF8", Orange = "22D3EE",
+			Success = "34D399", Error = "F87171", Text = "EAF4FB", Muted = "7C96A6",
+		},
+		forest = { -- verde esmeralda sobre grafite escuro
+			Bg = "070B08", Panel = "0F1912", Card = "16241A", Field = "0A120D", Stroke = "2C4A38",
+			Violet = "22C55E", Purple = "15803D", Electric = "4ADE80", Orange = "A3E635",
+			Success = "34D399", Error = "F87171", Text = "EFFBF3", Muted = "86A692",
+		},
+		cyberpunk = { -- magenta/ciano neon sobre preto azulado
+			Bg = "07060D", Panel = "100D1E", Card = "191229", Field = "0B0916", Stroke = "3A2A5C",
+			Violet = "F0299C", Purple = "7C1FD6", Electric = "00E5FF", Orange = "FF2E88",
+			Success = "34D399", Error = "F87171", Text = "F2EEFB", Muted = "9589B3",
+		},
+		royal = { -- azul/roxo real com detalhes dourados
+			Bg = "07070D", Panel = "11101F", Card = "191830", Field = "0C0B18", Stroke = "342F57",
+			Violet = "6366F1", Purple = "4338CA", Electric = "A5B4FC", Orange = "F2D77E",
+			Success = "34D399", Error = "F87171", Text = "F2F1FB", Muted = "8E8CB3",
+		},
+		mono = { -- cinza/grafite neutro, quase sem cor
+			Bg = "0A0A0A", Panel = "121212", Card = "1A1A1A", Field = "0D0D0D", Stroke = "303030",
+			Violet = "9CA3AF", Purple = "6B7280", Electric = "D1D5DB", Orange = "9CA3AF",
+			Success = "34D399", Error = "F87171", Text = "F2F2F2", Muted = "8A8A8A",
+		},
 	},
 
 	Colors = nil, -- preenchido automaticamente a partir de Theme/Themes logo abaixo; nao edite aqui
@@ -104,6 +130,7 @@ local DefaultConfig = {
 
 	-- Execute so aparece apos validacao real bem-sucedida.
 	RequireKeyToExecute = true,
+	AutoExecute = true, -- Key certa: executa direto (sem botao Execute). false = mostra o botao Execute
 
 	-- -- Validacao ------------------------------------------------
 	Validation = {
@@ -358,6 +385,7 @@ end
 -- Opening - Idle - Validating - Success - Executing - Closing - Closed
 local State = "Opening"
 local Minimized, Busy = false, false
+local closeSequence -- forward-declare: verify()/tryAutoLogin() chamam closeSequence antes dela ser definida mais abaixo
 local KeyValidated = false
 local baseScale = 1
 
@@ -1236,7 +1264,10 @@ local function verify()
 		tw(keyStroke, 0.3, { Color = C.Success })
 		input.TextEditable = false
 		KeyCache.save(key) -- HWID ja trava no provedor; isto so evita pedir a Key de novo no mesmo dispositivo
-		if Config.RequireKeyToExecute then revealExecute() end
+		if Config.RequireKeyToExecute then
+			if Config.AutoExecute then task.delay(0.5, function() if State == "Success" then closeSequence(true) end end)
+			else revealExecute() end
+		end
 	else
 		State = "Idle"
 		Sfx.play("Error")
@@ -1270,7 +1301,10 @@ local function tryAutoLogin()
 		setStatus("success", res.message or Messages.valid)
 		tw(keyStroke, 0.3, { Color = C.Success })
 		input.TextEditable = false
-		if Config.RequireKeyToExecute then revealExecute() end
+		if Config.RequireKeyToExecute then
+			if Config.AutoExecute then task.delay(0.5, function() if State == "Success" then closeSequence(true) end end)
+			else revealExecute() end
+		end
 	else
 		State = "Idle"
 		KeyCache.clear() -- a Key salva nao e mais valida: remove o cache para nao tentar de novo com a mesma Key quebrada
@@ -1787,6 +1821,7 @@ local function openSequence()
 	tw(panelAnim, T.Reveal, { Value = 1 }, Enum.EasingStyle.Back)
 	task.wait(T.Reveal)
 	State = "Idle" -- 7: a orbita continua no RenderStepped
+	if not Config.RequireKeyToExecute then revealExecute() end -- sem Key exigida: botao Execute liberado direto
 	task.spawn(tryAutoLogin) -- Key salva em cache (se houver): tenta validar sozinho
 end
 
@@ -1804,7 +1839,7 @@ local function destroy()
 	if env.CoiledTomKeySystem == API then env.CoiledTomKeySystem = nil end
 end
 
-local function closeSequence(execute)
+function closeSequence(execute)
 	if State == "Opening" or State == "Closing" or State == "Executing" or State == "Closed" or Busy then return end
 	if execute and not KeyValidated and Config.RequireKeyToExecute then return end
 	State = execute and "Executing" or "Closing"
