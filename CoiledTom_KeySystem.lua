@@ -602,7 +602,7 @@ end
 --  GUI RAIZ
 -- ================================================================
 local gui = new("ScreenGui", { Name = "CoiledTomKeySystem", ResetOnSpawn = false, IgnoreGuiInset = true,
-	ZIndexBehavior = Enum.ZIndexBehavior.Sibling, DisplayOrder = 10 })
+	ZIndexBehavior = Enum.ZIndexBehavior.Sibling, DisplayOrder = 5 })
 gui.Parent = Env.parent()
 
 -- Fundo escurecido durante o carregamento
@@ -628,14 +628,6 @@ local panelScale = new("UIScale", { Parent = panel })
 local panelAnim = new("NumberValue", { Value = 0.88 })
 local function applyScale() panelScale.Scale = math.max(0.001, baseScale * panelAnim.Value) end
 bind(panelAnim.Changed:Connect(applyScale))
-
--- linha de energia superior
-local topLine = new("Frame", { Size = UDim2.new(1, -36, 0, 2), Position = UDim2.fromOffset(18, 0),
-	BackgroundColor3 = C.Violet, BorderSizePixel = 0, Parent = panel })
-new("UIGradient", { Color = ColorSequence.new({ ColorSequenceKeypoint.new(0, C.Purple),
-	ColorSequenceKeypoint.new(0.6, C.Violet), ColorSequenceKeypoint.new(1, C.Orange) }), Parent = topLine })
-new("UIGradient", { Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 1),
-	NumberSequenceKeypoint.new(0.25, 0), NumberSequenceKeypoint.new(0.75, 0), NumberSequenceKeypoint.new(1, 1) }) , Parent = topLine })
 
 -- -- Barra de titulo ---------------------------------------------
 local titleBar = new("Frame", { Size = UDim2.new(1, 0, 0, 54), BackgroundTransparency = 1, Parent = panel })
