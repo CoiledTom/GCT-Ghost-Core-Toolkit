@@ -99,6 +99,7 @@ local DefaultConfig = {
 	Window = {
 		Width = 460, Height = 350,
 		MinScale = 0.5, MaxScale = 1.15, -- escala responsiva (celular <-> desktop)
+		Transparency = 0, -- transparencia do fundo do painel: 0 = opaco, 0.9 = quase invisivel (limite: 0 a 0.9)
 	},
 
 	-- Execute so aparece apos validacao real bem-sucedida.
@@ -160,8 +161,8 @@ local DefaultConfig = {
 		PerRing = 6,        -- esferas por orbita antes de abrir outra
 		Squareness = 6,     -- 2 = elipse - maior = mais "quadrada" (acompanha o painel)
 		IntroSpread = 1.0, -- raio relativo durante o carregamento (orbita AO REDOR da barra)
-		MinimizedScale = 0.08, -- raio da orbita quando minimizado (quase 0 = esferas entram dentro da bubble)
-		MinimizedSpeedMul = 2.6, -- multiplicador de velocidade de rotacao quando minimizado (gira mais rapido)
+		MinimizedGap = 5,      -- distancia (px) entre a borda da bolha e as esferas quando minimizado
+		MinimizedSpeedMul = 2.6, -- velocidade de rotacao quando minimizado (1 = igual ao aberto; maior = mais rapido)
 		ShowNames = false,
 		BorderThickness = 1, -- espessura do contorno das esferas (px)
 	},
@@ -796,6 +797,7 @@ local panel = new("CanvasGroup", { Name = "Panel", AnchorPoint = Vector2.new(0.5
 corner(panel, 18)
 -- fundo com degrade: fica em um Frame filho (nunca UIGradient direto no CanvasGroup)
 local panelBg = new("Frame", { Name = "Bg", Size = UDim2.fromScale(1, 1), BackgroundColor3 = Color3.new(1, 1, 1),
+	BackgroundTransparency = math.clamp(tonumber(Config.Window.Transparency) or 0, 0, 0.9),
 	BorderSizePixel = 0, Parent = panel })
 corner(panelBg, 18)
 stroke(panelBg, C.Stroke, 2.4, 0) -- dentro do grupo: some junto com o fade (metade interna fica visivel)
@@ -916,23 +918,32 @@ setIconColor(tabs.verify.icon, C.Violet, 0)
 -- ================================================================
 --  COMPONENTES: botao, spinner
 -- ================================================================
+-- cor do texto/icone sobre uma cor de fundo solida: preto ou branco, conforme o brilho do fundo
+local function textOn(c)
+	local lum = 0.2126 * c.R + 0.7152 * c.G + 0.0722 * c.B
+	return lum > 0.6 and Color3.fromHex("17171F") or Color3.new(1, 1, 1)
+end
+
 local function Button(parent, label, iconName, style, size, pos)
 	local primary = style == "primary"
+	-- cores SOLIDAS (sem UIGradient)
+	local fill = C.Card
+	if primary then fill = C.Violet
+	elseif style == "success" then fill = C.Success:Lerp(Color3.new(0, 0, 0), 0.35) end
+	local fg = textOn(fill)
 	local b = new("TextButton", { Text = "", AutoButtonColor = false, Size = size, Position = pos or UDim2.new(),
-		BackgroundColor3 = primary and Color3.new(1, 1, 1) or C.Card, ClipsDescendants = true, Parent = parent })
+		BackgroundColor3 = fill, ClipsDescendants = true, Parent = parent })
 	corner(b, 12)
 	local st = stroke(b, primary and C.Electric or C.Stroke, 1, primary and 0.6 or 0.1)
-	if primary then gradient(b, C.Violet, C.Purple, 90) end
 	if style == "success" then
-		b.BackgroundColor3 = Color3.new(1, 1, 1); gradient(b, C.Success, Color3.fromHex("0F9D6B"), 90)
 		st.Color = C.Success; st.Transparency = 0.5
 	end
 	local sc = new("UIScale", { Parent = b })
 	local row = new("Frame", { BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), Parent = b })
 	new("UIListLayout", { FillDirection = Enum.FillDirection.Horizontal, HorizontalAlignment = Enum.HorizontalAlignment.Center,
 		VerticalAlignment = Enum.VerticalAlignment.Center, Padding = UDim.new(0, 8), Parent = row })
-	local ic = makeIcon(row, iconName, 18, C.Text)
-	local lb = text(row, label, 14, C.Text, Enum.Font.GothamBold, { AutomaticSize = Enum.AutomaticSize.X,
+	local ic = makeIcon(row, iconName, 18, fg)
+	local lb = text(row, label, 14, fg, Enum.Font.GothamBold, { AutomaticSize = Enum.AutomaticSize.X,
 		Size = UDim2.new(0, 0, 0, 18) })
 	bind(b.MouseEnter:Connect(function() Sfx.play("Hover"); tw(sc, 0.15, { Scale = 1.02 }); tw(st, 0.15, { Transparency = 0, Color = primary and C.Electric or C.Violet }) end))
 	bind(b.MouseLeave:Connect(function() tw(sc, 0.15, { Scale = 1 }); tw(st, 0.15, { Transparency = primary and 0.6 or 0.1, Color = primary and C.Electric or C.Stroke }) end))
@@ -1584,25 +1595,33 @@ end
 local function orbitStep(dt)
 	if State == "Closed" then return end
 	local vpx = gui.AbsoluteSize
-	local m = orb.minimized.Value
+	local m = orb.minimized.Value -- 0 = aberto, 1 = minimizado
 	local center = posToPx(panelPos, vpx):Lerp(posToPx(bubblePos, vpx), m)
 	-- no carregamento orbitam ao redor da barra (nunca por dentro da area da GUI)
 	local panelHalf = Vector2.new(W / 2 * baseScale, H / 2 * baseScale)
 	local barHalf = Vector2.new(145, 39)
-	local half = panelHalf:Lerp(barHalf, orb.intro.Value):Lerp(Vector2.new(BUBBLE / 2, BUBBLE / 2), m)
-	local ringScale = lerp(1, Config.Orbit.MinimizedScale, m)
+	local half = panelHalf:Lerp(barHalf, orb.intro.Value)
 	local k = orb.spread.Value * (1 - orb.absorb.Value)
-	local sizeMul = orb.size.Value * (1 - orb.absorb.Value) * lerp(1, 0.78, m)
+	local kk = 1 - orb.absorb.Value
+	local sizeMul = orb.size.Value * kk
 	local speedMul = orb.speed.Value * lerp(1, Config.Orbit.MinimizedSpeedMul, m) -- minimizado: gira mais rapido
 	local pw = 2 / Config.Orbit.Squareness
+	-- minimizado: esferas em circulo ao redor da bolha, com MinimizedGap px de folga
+	local bubbleR = BUBBLE / 2 + Config.Orbit.MinimizedGap
 	for _, s in ipairs(Spheres) do
 		s.angle += dt * Config.Orbit.BaseSpeed * s.Speed * s.dirEff * speedMul
-		local r = (Config.Orbit.Gap + s.ringIdx * Config.Orbit.RingStep + s.Size * 0.5) * baseScale * ringScale
 		local c, sn = math.cos(s.angle), math.sin(s.angle)
+		-- posicao no estado aberto (inalterada)
+		local r = (Config.Orbit.Gap + s.ringIdx * Config.Orbit.RingStep + s.Size * 0.5) * baseScale
 		local x = (half.X + r) * k * math.sign(c) * math.abs(c) ^ pw
 		local y = (half.Y + r) * k * math.sign(sn) * math.abs(sn) ^ pw
 		local depth = (sn + 1) / 2
 		local sz = s.Size * baseScale * sizeMul * (0.88 + 0.12 * depth)
+		-- posicao no estado minimizado (circulo em volta da bolha)
+		local rm = bubbleR + s.ringIdx * (Config.Orbit.SphereSize + Config.Orbit.MinimizedGap) + s.Size * 0.5
+		x = lerp(x, rm * c * kk, m)
+		y = lerp(y, rm * sn * kk, m)
+		sz = lerp(sz, s.Size * kk, m)
 		local g = s.gui
 		if sz < 1.5 then g.Visible = false
 		else
