@@ -128,13 +128,13 @@ local Config = {
 		Sounds = {
 			click       = { soundId = "rbxassetid://7212399604", volume = 0.35, pitch = 1.1,  loop = false, duration = 0.3 },
 			hover       = { soundId = "rbxassetid://7212399604", volume = 0.15, pitch = 1.3,  loop = false, duration = 0.2 },
-			open        = { soundId = "rbxassetid://9116245410", volume = 0.30, pitch = 1.0,  loop = false, duration = 0.5 },
-			close       = { soundId = "rbxassetid://9116245410", volume = 0.25, pitch = 0.8,  loop = false, duration = 0.4 },
+			open        = { soundId = "", volume = 0.30, pitch = 1.0,  loop = false, duration = 0.5 }, -- rbxassetid:// invalido removido; cole um ID real do Creator Store
+			close       = { soundId = "", volume = 0.25, pitch = 0.8,  loop = false, duration = 0.4 }, -- rbxassetid:// invalido removido; cole um ID real do Creator Store
 			confirm     = { soundId = "rbxassetid://4342630136", volume = 0.40, pitch = 1.0,  loop = false, duration = 0.6 },
-			cancel      = { soundId = "rbxassetid://314428418",  volume = 0.35, pitch = 0.6,  loop = false, duration = 0.4 },
-			error       = { soundId = "rbxassetid://314428418",  volume = 0.45, pitch = 0.4,  loop = false, duration = 0.5 },
+			cancel      = { soundId = "", volume = 0.35, pitch = 0.6,  loop = false, duration = 0.4 }, -- rbxassetid:// invalido removido; cole um ID real do Creator Store
+			error       = { soundId = "", volume = 0.45, pitch = 0.4,  loop = false, duration = 0.5 }, -- rbxassetid:// invalido removido; cole um ID real do Creator Store
 			success     = { soundId = "rbxassetid://4342630136", volume = 0.55, pitch = 1.0,  loop = false, duration = 1.0 },
-			notify      = { soundId = "rbxassetid://9116245410", volume = 0.35, pitch = 0.95, loop = false, duration = 0.5 },
+			notify      = { soundId = "", volume = 0.35, pitch = 0.95, loop = false, duration = 0.5 }, -- rbxassetid:// invalido removido; cole um ID real do Creator Store
 			purchase    = { soundId = "rbxassetid://4342630136", volume = 0.50, pitch = 1.0,  loop = false, duration = 0.8 },
 			achievement = { soundId = "rbxassetid://4342630136", volume = 0.55, pitch = 1.0,  loop = false, duration = 2.0 },
 			alarm       = { soundId = "rbxassetid://9112979236", volume = 0.35, pitch = 1.3,  loop = true,  duration = 0.5 },
@@ -602,7 +602,7 @@ end
 --  GUI RAIZ
 -- ================================================================
 local gui = new("ScreenGui", { Name = "CoiledTomKeySystem", ResetOnSpawn = false, IgnoreGuiInset = true,
-	ZIndexBehavior = Enum.ZIndexBehavior.Sibling, DisplayOrder = 999 })
+	ZIndexBehavior = Enum.ZIndexBehavior.Sibling, DisplayOrder = 10 })
 gui.Parent = Env.parent()
 
 -- Fundo escurecido durante o carregamento
@@ -679,7 +679,11 @@ local tabBar = new("Frame", { Position = UDim2.fromOffset(0, 54), Size = UDim2.n
 	BackgroundTransparency = 1, Parent = panel })
 new("Frame", { Position = UDim2.new(0, 16, 1, -1), Size = UDim2.new(1, -32, 0, 1), BackgroundColor3 = C.Stroke,
 	BorderSizePixel = 0, Parent = tabBar })
-
+local indicatorHolder = new("Frame", { Position = UDim2.new(0, 16, 1, -2), Size = UDim2.new(1, -32, 0, 2),
+	BackgroundTransparency = 1, Parent = tabBar })
+local indicator = new("Frame", { Size = UDim2.fromScale(1 / 3, 1), BackgroundColor3 = C.Violet, BorderSizePixel = 0,
+	Parent = indicatorHolder })
+corner(indicator); gradient(indicator, C.Violet, C.Orange, 0)
 
 local content = new("Frame", { Position = UDim2.fromOffset(0, 96), Size = UDim2.new(1, 0, 1, -96),
 	BackgroundTransparency = 1, ClipsDescendants = true, Parent = panel })
@@ -719,6 +723,7 @@ local function selectTab(id)
 		tw(t.label, 0.2, { TextColor3 = on and C.Text or C.Muted })
 		setIconColor(t.icon, on and C.Violet or C.Muted, 0.2)
 	end
+	tw(indicator, 0.35, { Position = UDim2.fromScale((tabs[id].index - 1) / 3, 0) }, Enum.EasingStyle.Back)
 	local po, pn = pages[old], pages[new_]
 	tw(po, 0.18, { GroupTransparency = 1, Position = UDim2.fromOffset(-18 * dirn, 0) })
 	task.delay(0.18, function() if activeTab ~= old then po.Visible = false end end)
