@@ -483,9 +483,16 @@ local function execImgAttempt()
 		for seg in path:gmatch("[^/]+") do table.insert(parts, HttpService:UrlEncode(seg)) end
 		return ("https://raw.githubusercontent.com/%s/%s/%s"):format(cfg.Repo, cfg.Branch, table.concat(parts, "/"))
 	end
+	local function validImage(body)
+		if type(body) ~= "string" or #body < 12 then return false end
+		if body:sub(2, 4) == "PNG" then return true end -- PNG
+		if body:sub(1, 4) == "RIFF" and body:sub(9, 12) == "WEBP" then return true end -- WEBP
+		if body:sub(1, 3) == "\255\216\255" then return true end -- JPEG
+		return false
+	end
 	local function download(path, cache)
 		local body = Env.httpGet(rawUrl(path))
-		if type(body) ~= "string" or body:sub(2, 4) ~= "PNG" then return nil end -- so aceita PNG valido
+		if not validImage(body) then return nil end
 		if not pcall(writefile, cache, body) then return nil end
 		return useFile(cache)
 	end
@@ -502,8 +509,11 @@ local function execImgAttempt()
 		local ok, data = pcall(function() return HttpService:JSONDecode(tree) end)
 		if ok and type(data) == "table" and type(data.tree) == "table" then
 			for _, it in ipairs(data.tree) do
-				if it.type == "blob" and type(it.path) == "string" and it.path:lower():match("%.png$") then
-					table.insert(pngs, { path = it.path, base = normName(it.path:match("([^/]+)%.[Pp][Nn][Gg]$") or "") })
+				if it.type == "blob" and type(it.path) == "string" then
+					local lp = it.path:lower()
+					if lp:match("%.png$") or lp:match("%.webp$") or lp:match("%.jpe?g$") then
+						table.insert(pngs, { path = it.path, base = normName(it.path:match("([^/]+)%.%w+$") or "") })
+					end
 				end
 			end
 		end
@@ -520,11 +530,13 @@ local function execImgAttempt()
 		end
 		if best then
 			local a = download(best.path, cacheExec); if a then return a end
-		elseif #pngs == 0 then -- sem lista (API indisponivel): tenta caminhos provaveis
+		elseif #pngs == 0 then -- sem lista (API indisponivel): tenta caminhos provaveis na raiz
 			local nm = full:match("^(%S+)") or ""
-			for _, g in ipairs({ "src/" .. nm .. ".png", "src/" .. nm:lower() .. ".png",
-				"src/" .. nm:sub(1, 1):upper() .. nm:sub(2):lower() .. ".png" }) do
-				local a = download(g, cacheExec); if a then return a end
+			local names = { nm, nm:lower(), nm:sub(1, 1):upper() .. nm:sub(2):lower() }
+			for _, n in ipairs(names) do
+				for _, ext in ipairs({ ".png", ".webp", ".jpg", ".jpeg" }) do
+					local a = download(n .. ext, cacheExec); if a then return a end
+				end
 			end
 		end
 	end
@@ -540,7 +552,7 @@ local function execImgAttempt()
 		end
 	end
 	if #pngs == 0 then
-		for _, g in ipairs({ "src/Erro.png", "src/erro.png" }) do
+		for _, g in ipairs({ "Erro.png", "erro.png", "Erro.webp", "erro.webp" }) do
 			local a = download(g, cacheFall); if a then return a end
 		end
 	end
@@ -661,18 +673,13 @@ local function iconButton(parent, iconName, xFromRight, hoverColor)
 end
 local closeBtn = iconButton(titleBar, "close", 14, C.Error)
 local minBtn = iconButton(titleBar, "minimize", 54)
-local audioBtn, audioIcon = iconButton(titleBar, "audio", 94)
 
 -- -- Abas --------------------------------------------------------
 local tabBar = new("Frame", { Position = UDim2.fromOffset(0, 54), Size = UDim2.new(1, 0, 0, 40),
 	BackgroundTransparency = 1, Parent = panel })
 new("Frame", { Position = UDim2.new(0, 16, 1, -1), Size = UDim2.new(1, -32, 0, 1), BackgroundColor3 = C.Stroke,
 	BorderSizePixel = 0, Parent = tabBar })
-local indicatorHolder = new("Frame", { Position = UDim2.new(0, 16, 1, -2), Size = UDim2.new(1, -32, 0, 2),
-	BackgroundTransparency = 1, Parent = tabBar })
-local indicator = new("Frame", { Size = UDim2.fromScale(1 / 3, 1), BackgroundColor3 = C.Violet, BorderSizePixel = 0,
-	Parent = indicatorHolder })
-corner(indicator); gradient(indicator, C.Violet, C.Orange, 0)
+
 
 local content = new("Frame", { Position = UDim2.fromOffset(0, 96), Size = UDim2.new(1, 0, 1, -96),
 	BackgroundTransparency = 1, ClipsDescendants = true, Parent = panel })
@@ -712,7 +719,6 @@ local function selectTab(id)
 		tw(t.label, 0.2, { TextColor3 = on and C.Text or C.Muted })
 		setIconColor(t.icon, on and C.Violet or C.Muted, 0.2)
 	end
-	tw(indicator, 0.35, { Position = UDim2.fromScale((tabs[id].index - 1) / 3, 0) }, Enum.EasingStyle.Back)
 	local po, pn = pages[old], pages[new_]
 	tw(po, 0.18, { GroupTransparency = 1, Position = UDim2.fromOffset(-18 * dirn, 0) })
 	task.delay(0.18, function() if activeTab ~= old then po.Visible = false end end)
@@ -1107,7 +1113,6 @@ do
 		if Config.Audio.Enabled then Sfx.play("Click") end
 	end
 	bind(tg.Activated:Connect(toggleAudio))
-	bind(audioBtn.Activated:Connect(toggleAudio))
 	-- slider de volume
 	local track = new("Frame", { Position = UDim2.new(0, 14, 0, 46), Size = UDim2.new(1, -28, 0, 6), BackgroundColor3 = C.Field, Parent = c })
 	corner(track)
