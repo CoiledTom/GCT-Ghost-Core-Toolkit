@@ -852,8 +852,10 @@ local function setBrandImage(asset)
 	brandGrad.Enabled = false -- com foto: sem fundo degrade (senao vira uma "borda" colorida ao redor da imagem)
 	brandStroke.Color = C.Stroke; brandStroke.Transparency = 0.25 -- borda fina e neutra, igual ao resto da GUI
 	if not brandImg then
-		brandImg = new("ImageLabel", { BackgroundTransparency = 1, Size = UDim2.new(1, -2, 1, -2), Position = UDim2.fromOffset(1, 1),
-			ScaleType = Enum.ScaleType.Crop, Parent = brand }, { new("UICorner", { CornerRadius = UDim.new(0, 9) }) })
+		-- preenche a caixa inteira (sem margem/offset): evita que o escalonamento responsivo do painel
+		-- arredonde a margem de forma diferente de cada lado (1px de um lado, 2px do outro)
+		brandImg = new("ImageLabel", { BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1),
+			ScaleType = Enum.ScaleType.Crop, Parent = brand }, { new("UICorner", { CornerRadius = UDim.new(0, 10) }) })
 	end
 	brandImg.Image = asset
 end
