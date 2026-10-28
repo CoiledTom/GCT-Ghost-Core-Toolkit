@@ -4,7 +4,7 @@ Painel de autenticação (Key System) para Roblox, com visual escuro, esferas or
 
 ### Links do projeto
 
-- Repositório: https://github.com/CoiledTom/GCT-Ghost-Core-Toolkit
+- Repositório: https://github.com/CoiledTom/GCT-Ghost-Core-Toolkit/tree/main
 - `main.lua` (raw): https://raw.githubusercontent.com/CoiledTom/GCT-Ghost-Core-Toolkit/refs/heads/main/main.lua
 - Pasta dos Loaders: `Panda/`, `Luarmor/` e `Jnkie/`, na raiz do repositório.
 
@@ -114,6 +114,21 @@ Spheres = {
 - `Image` aceita `"auto:game"`, `"auto:player"`, `"auto:executor"`, um ID de imagem do Roblox (`"rbxassetid://ID"` ou apenas o número) ou um `rbxthumb://...`.
 - Para adicionar ou remover uma esfera, inclua ou apague um item da lista. Elas se redistribuem sozinhas. `Orbit.PerRing` define quantas cabem por anel.
 
+### Nomes de ícone (`Icon`, `BrandIcon`)
+
+Campos como `BrandIcon`, o `Icon` de uma esfera, de um link do Get Key (`KeyProviders`) ou de um crédito usam um **nome** de ícone (ex.: `"key"`, `"link"`), não uma imagem. Esse nome é resolvido pelo pacote de ícones carregado em `Config.Icons.Url` no `main.lua`.
+
+Para ver todos os nomes disponíveis, consulte os pacotes de ícones (cada um é um estilo diferente; o `main.lua` tenta casar o nome pedido com o que existir em qualquer um deles):
+
+- Lucide: https://raw.githubusercontent.com/Footagesus/Icons/main/lucide/dist/Icons.lua
+- Solar: https://raw.githubusercontent.com/Footagesus/Icons/main/solar/dist/Icons.lua
+- Geist: https://raw.githubusercontent.com/Footagesus/Icons/main/geist/dist/Icons.lua
+- Craft: https://raw.githubusercontent.com/Footagesus/Icons/main/craft/dist/Icons.lua
+- Gravity: https://raw.githubusercontent.com/Footagesus/Icons/main/gravity/dist/Icons.lua
+- SF Symbols: https://raw.githubusercontent.com/Footagesus/Icons/main/sfsymbols/dist/Icons.lua
+
+Abra o link do estilo desejado no navegador e procure (Ctrl+F) pelo nome do ícone que você quer usar; as chaves do arquivo são os nomes aceitos em `Icon`/`BrandIcon`. Se o nome não existir em nenhum pacote carregado, o painel mostra um ícone de reserva (nunca quebra o layout).
+
 ### Imagens do executor
 
 ```lua
@@ -129,7 +144,6 @@ ExecutorImages = {
 - O painel baixa a foto do executor detectado a partir do repositório (ex.: `Delta.png`, `Synapse_Z.webp`). Sem foto, usa `erro`.
 - Formatos aceitos: PNG, WEBP e JPEG.
 - Precisa de `writefile` e `getcustomasset` no executor. Sem eles, mostra o ícone padrão.
-- O `.` no final de `Repo` faz parte do nome do repositório.
 
 ### Links para pegar a Key (Get Key)
 

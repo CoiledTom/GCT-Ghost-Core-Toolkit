@@ -232,7 +232,7 @@ local DefaultConfig = {
 	-- Precisa de writefile + getcustomasset no executor; sem isso mostra o icone padrao.
 	ExecutorImages = {
 		Enabled = true,
-		Repo = "CoiledTom/GCT-Ghost-Core-Toolkit.", -- o "." final FAZ parte do nome do repositorio
+		Repo = "CoiledTom/GCT-Ghost-Core-Toolkit",
 		Branch = "main",
 		Fallback = "erro", -- procura erro.png (sem diferenciar maiusculas)
 		Folder = "CoiledTom_KeySystem", -- pasta de cache no workspace do executor
@@ -1629,7 +1629,7 @@ local bubbleScale = new("UIScale", { Scale = 0.01, Parent = bubble })
 if Config.BrandImage ~= "" then
 	bubbleGrad.Enabled = false -- com foto: sem fundo degrade atras dela
 	bubbleStroke.Color = C.Stroke; bubbleStroke.Transparency = 0.25 -- borda fina e neutra, igual ao resto da GUI
-	new("ImageLabel", { BackgroundTransparency = 1, Size = UDim2.new(1, -3, 1, -3), Position = UDim2.fromOffset(1.5, 1.5),
+	new("ImageLabel", { BackgroundTransparency = 1, Size = UDim2.new(1, -4, 1, -4), Position = UDim2.fromOffset(2, 2),
 		Image = normImage(Config.BrandImage), ScaleType = Enum.ScaleType.Crop, Parent = bubble }, { new("UICorner", { CornerRadius = UDim.new(1, 0) }) })
 else
 	makeIcon(bubble, Config.BrandIcon, 26, C.Text, { AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5) })
