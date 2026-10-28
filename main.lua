@@ -32,7 +32,7 @@ local DefaultConfig = {
 
 	-- Icone da marca: nome semantico (resolvido via RocketUI Icons) e/ou imagem propria.
 	BrandIcon  = "key",
-	BrandImage = "", -- ex.: "rbxassetid://123..." (opcional; usado tambem na esfera "GUI")
+	BrandImage = "rbxassetid://6007661442", -- usado tambem na esfera "GUI" e na bolha minimizada; "" = usa a foto do Autor/icone
 
 	-- Autor/criador do script (mostrado no topo da GUI, abaixo do titulo).
 	Author = {
@@ -190,6 +190,7 @@ local DefaultConfig = {
 		IntroSpread = 1.0, -- raio relativo durante o carregamento (orbita AO REDOR da barra)
 		MinimizedGap = 5,      -- distancia (px) entre a borda da bolha e as esferas quando minimizado
 		MinimizedSpeedMul = 2.6, -- velocidade de rotacao quando minimizado (1 = igual ao aberto; maior = mais rapido)
+		MinimizedSizeMul = 0.6, -- tamanho das esferas quando minimizado (1 = mesmo tamanho do aberto)
 		ShowNames = false,
 		BorderThickness = 1, -- espessura do contorno das esferas (px)
 	},
@@ -214,10 +215,10 @@ local DefaultConfig = {
 			hover       = { soundId = "rbxassetid://7212399604", volume = 0.15, pitch = 1.3,  loop = false, duration = 0.2 },
 			open        = { soundId = "", volume = 0.30, pitch = 1.0,  loop = false, duration = 0.5 }, -- rbxassetid:// invalido removido; cole um ID real do Creator Store
 			close       = { soundId = "", volume = 0.25, pitch = 0.8,  loop = false, duration = 0.4 }, -- rbxassetid:// invalido removido; cole um ID real do Creator Store
-			confirm     = { soundId = "rbxassetid://4342630136", volume = 0.40, pitch = 1.0,  loop = false, duration = 0.6 },
+			confirm     = { soundId = "rbxassetid://4342630136", volume = 0.30, pitch = 1.0,  loop = false, duration = 0.6 },
 			cancel      = { soundId = "", volume = 0.35, pitch = 0.6,  loop = false, duration = 0.4 }, -- rbxassetid:// invalido removido; cole um ID real do Creator Store
 			error       = { soundId = "", volume = 0.45, pitch = 0.4,  loop = false, duration = 0.5 }, -- rbxassetid:// invalido removido; cole um ID real do Creator Store
-			success     = { soundId = "rbxassetid://4342630136", volume = 0.55, pitch = 1.0,  loop = false, duration = 1.0 },
+			success     = { soundId = "rbxassetid://4342630136", volume = 0.42, pitch = 1.0,  loop = false, duration = 1.0 },
 			notify      = { soundId = "", volume = 0.35, pitch = 0.95, loop = false, duration = 0.5 }, -- rbxassetid:// invalido removido; cole um ID real do Creator Store
 			purchase    = { soundId = "rbxassetid://4342630136", volume = 0.50, pitch = 1.0,  loop = false, duration = 0.8 },
 			achievement = { soundId = "rbxassetid://4342630136", volume = 0.55, pitch = 1.0,  loop = false, duration = 2.0 },
@@ -828,7 +829,7 @@ local panelBg = new("Frame", { Name = "Bg", Size = UDim2.fromScale(1, 1), Backgr
 	BackgroundTransparency = math.clamp(tonumber(Config.Window.Transparency) or 0, 0, 0.9),
 	BorderSizePixel = 0, Parent = panel })
 corner(panelBg, 18)
-stroke(panelBg, C.Stroke, 2.4, 0) -- dentro do grupo: some junto com o fade (metade interna fica visivel)
+stroke(panelBg, C.Stroke, 1.5, 0) -- dentro do grupo: some junto com o fade (metade interna fica visivel)
 gradient(panelBg, Color3.fromHex("1E1E30"), Color3.fromHex("12121C"), 90)
 local panelScale = new("UIScale", { Parent = panel })
 local panelAnim = new("NumberValue", { Value = 0.88 })
@@ -1616,7 +1617,7 @@ local bubblePos = UDim2.new(1, -60, 0.5, 0)
 local bubble = new("TextButton", { Text = "", AutoButtonColor = false, AnchorPoint = Vector2.new(0.5, 0.5),
 	Position = bubblePos, Size = UDim2.fromOffset(BUBBLE, BUBBLE), BackgroundColor3 = Color3.new(1, 1, 1),
 	Visible = false, ZIndex = 8, Parent = gui })
-corner(bubble); gradient(bubble, C.Violet, C.Purple, 45); stroke(bubble, C.Orange, 1.6, 0.2)
+corner(bubble); gradient(bubble, C.Violet, C.Purple, 45); stroke(bubble, C.Orange, 1.2, 0.2)
 local bubbleScale = new("UIScale", { Scale = 0.01, Parent = bubble })
 if Config.BrandImage ~= "" then
 	new("ImageLabel", { BackgroundTransparency = 1, Size = UDim2.new(1, -8, 1, -8), Position = UDim2.fromOffset(4, 4),
@@ -1640,7 +1641,7 @@ local function orbitStep(dt)
 	local sizeMul = orb.size.Value * kk
 	local speedMul = orb.speed.Value * lerp(1, Config.Orbit.MinimizedSpeedMul, m) -- minimizado: gira mais rapido
 	local pw = 2 / Config.Orbit.Squareness
-	-- minimizado: esferas em circulo ao redor da bolha, com MinimizedGap px de folga
+	-- minimizado: esferas menores, em circulo ao redor da bolha, com MinimizedGap px de folga
 	local bubbleR = BUBBLE / 2 + Config.Orbit.MinimizedGap
 	for _, s in ipairs(Spheres) do
 		s.angle += dt * Config.Orbit.BaseSpeed * s.Speed * s.dirEff * speedMul
@@ -1651,11 +1652,12 @@ local function orbitStep(dt)
 		local y = (half.Y + r) * k * math.sign(sn) * math.abs(sn) ^ pw
 		local depth = (sn + 1) / 2
 		local sz = s.Size * baseScale * sizeMul * (0.88 + 0.12 * depth)
-		-- posicao no estado minimizado (circulo em volta da bolha)
-		local rm = bubbleR + s.ringIdx * (Config.Orbit.SphereSize + Config.Orbit.MinimizedGap) + s.Size * 0.5
+		-- posicao no estado minimizado (circulo em volta da bolha, esferas menores)
+		local sMini = s.Size * Config.Orbit.MinimizedSizeMul
+		local rm = bubbleR + s.ringIdx * (sMini + Config.Orbit.MinimizedGap) + sMini * 0.5
 		x = lerp(x, rm * c * kk, m)
 		y = lerp(y, rm * sn * kk, m)
-		sz = lerp(sz, s.Size * kk, m)
+		sz = lerp(sz, sMini * kk, m)
 		local g = s.gui
 		if sz < 1.5 then g.Visible = false
 		else
@@ -1723,10 +1725,10 @@ local function minimize()
 	if Busy or Minimized or (State ~= "Idle" and State ~= "Success" and State ~= "Validating") then return end
 	Busy = true; Minimized = true
 	closeDropdown(true); Sfx.play("Minimize")
-	tw(orb.minimized, 0.6, { Value = 1 }, Enum.EasingStyle.Quint)
+	tw(orb.minimized, 0.45, { Value = 1 }, Enum.EasingStyle.Quint, Enum.EasingDirection.In)
 	tw(panel, 0.45, { GroupTransparency = 1, Position = bubblePos }, Enum.EasingStyle.Quint, Enum.EasingDirection.In)
 	tw(panelAnim, 0.45, { Value = 0.05 }, Enum.EasingStyle.Quint, Enum.EasingDirection.In)
-	task.wait(0.4)
+	task.wait(0.45)
 	panel.Visible = false
 	bubble.Visible = true
 	tw(bubbleScale, 0.4, { Scale = 1 }, Enum.EasingStyle.Back)
@@ -1740,7 +1742,7 @@ local function restore()
 	tw(bubbleScale, 0.25, { Scale = 0.01 }, Enum.EasingStyle.Quint, Enum.EasingDirection.In)
 	panel.Position = bubblePos
 	panel.Visible = true
-	tw(orb.minimized, 0.6, { Value = 0 }, Enum.EasingStyle.Quint)
+	tw(orb.minimized, 0.5, { Value = 0 }, Enum.EasingStyle.Quint)
 	tw(panel, 0.5, { GroupTransparency = 0, Position = panelPos }, Enum.EasingStyle.Quint)
 	tw(panelAnim, 0.5, { Value = 1 }, Enum.EasingStyle.Back)
 	task.wait(0.3)
