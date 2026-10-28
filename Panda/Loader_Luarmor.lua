@@ -1,7 +1,7 @@
 -- CoiledTom Key System | Loader: Luarmor (Key Check Library)
 -- Docs: https://docs.luarmor.net/luarmor-user-manual-and-f.a.q (secao "Key Check Library")
 
-local CORE_URL = "https://raw.githubusercontent.com/CoiledTom/GCT-Ghost-Core-Toolkit./refs/heads/main/main.lua"
+local CORE_URL = "https://raw.githubusercontent.com/CoiledTom/GCT-Ghost-Core-Toolkit/refs/heads/main/main.lua"
 
 local LUARMOR = {
 	ScriptId = "", -- Script ID do seu projeto na Luarmor (32 caracteres hexadecimais)
