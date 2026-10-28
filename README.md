@@ -31,7 +31,7 @@ Você só edita o **Loader** do provedor que escolher. Ele define a configuraç�
 
 ## Como usar
 
-1. O projeto já está publicado em `CoiledTom/GCT-Ghost-Core-Toolkit.`, com o `main.lua` e os 3 Loaders na raiz (ver "Links do projeto" acima).
+1. O projeto já está publicado em `CoiledTom/GCT-Ghost-Core-Toolkit`, com o `main.lua` e os 3 Loaders na raiz (ver "Links do projeto" acima).
 2. Abra o Loader do seu provedor (`Panda/Loader_Panda.lua`, `Luarmor/Loader_Luarmor.lua` ou `Jnkie/Loader_Jnkie.lua`) e preencha:
    - As credenciais do provedor (ver a seção do provedor abaixo).
    - A configuração visual em `env._CoiledTomConfig`.
