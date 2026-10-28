@@ -63,7 +63,7 @@ env._CoiledTomConfig = {
 
 	ExecutorImages = {
 		Enabled = true,
-		Repo = "CoiledTom/GCT-Ghost-Core-Toolkit.",
+		Repo = "CoiledTom/GCT-Ghost-Core-Toolkit",
 		Branch = "main",
 		Fallback = "erro",
 		Folder = "CoiledTom_KeySystem",
