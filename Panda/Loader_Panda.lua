@@ -1,7 +1,7 @@
 -- CoiledTom Key System | Loader: Panda Auth (Roblox SDK, PUSL-V4)
 -- Docs: https://pandauth.com/docs/for-developers/pusl-v4
 
-local CORE_URL = "https://raw.githubusercontent.com/CoiledTom/GCT-Ghost-Core-Toolkit./refs/heads/main/main.lua"
+local CORE_URL = "https://raw.githubusercontent.com/CoiledTom/GCT-Ghost-Core-Toolkit/refs/heads/main/main.lua"
 
 local PANDA = {
 	ServiceId = "", -- Service ID do seu servico (Dashboard Panda)
