@@ -867,7 +867,7 @@ end
 text(titleBar, Config.Name, 16, C.Text, Enum.Font.GothamBold, { Position = UDim2.fromOffset(60, 9),
 	Size = UDim2.new(1, -230, 0, 20), TextTruncate = Enum.TextTruncate.AtEnd })
 local subtitleText = (Config.Author and Config.Author.Name ~= "" and Config.Author.Name ~= nil)
-	and ("por " .. Config.Author.Name) or Config.Subtitle
+	and ("by " .. Config.Author.Name) or Config.Subtitle
 text(titleBar, subtitleText, 12, C.Muted, Enum.Font.Gotham, { Position = UDim2.fromOffset(60, 29),
 	Size = UDim2.new(1, -230, 0, 16), TextTruncate = Enum.TextTruncate.AtEnd })
 
