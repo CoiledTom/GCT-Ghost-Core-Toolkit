@@ -4,8 +4,8 @@ Painel de autenticação (Key System) para Roblox, com visual escuro, esferas or
 
 ### Links do projeto
 
-- Repositório: https://github.com/CoiledTom/GCT-Ghost-Core-Toolkit.
-- `main.lua` (raw): https://raw.githubusercontent.com/CoiledTom/GCT-Ghost-Core-Toolkit./refs/heads/main/main.lua
+- Repositório: https://github.com/CoiledTom/GCT-Ghost-Core-Toolkit
+- `main.lua` (raw): https://raw.githubusercontent.com/CoiledTom/GCT-Ghost-Core-Toolkit/refs/heads/main/main.lua
 - Pasta dos Loaders: `Panda/`, `Luarmor/` e `Jnkie/`, na raiz do repositório.
 
 ---
@@ -39,7 +39,7 @@ Você só edita o **Loader** do provedor que escolher. Ele define a configuraç�
 3. Confirme que o link raw abre no navegador antes de distribuir.
 4. Distribua o link raw do **Loader** para os usuários, por exemplo:
    ```lua
-   loadstring(game:HttpGet("https://raw.githubusercontent.com/CoiledTom/GCT-Ghost-Core-Toolkit./refs/heads/main/Panda/Loader_Panda.lua"))()
+   loadstring(game:HttpGet("https://raw.githubusercontent.com/CoiledTom/GCT-Ghost-Core-Toolkit/refs/heads/main/Panda/Loader_Panda.lua"))()
    ```
 
 ---
@@ -119,7 +119,7 @@ Spheres = {
 ```lua
 ExecutorImages = {
     Enabled = true,
-    Repo = "CoiledTom/GCT-Ghost-Core-Toolkit.",
+    Repo = "CoiledTom/GCT-Ghost-Core-Toolkit",
     Branch = "main",
     Fallback = "erro",
     Folder = "CoiledTom_KeySystem",
@@ -417,7 +417,7 @@ Se você usava versões antigas com `Core.lua`, troque em **todos** os Loaders:
 -- antes
 local CORE_URL = "https://raw.githubusercontent.com/.../main/Core.lua"
 -- depois
-local CORE_URL = "https://raw.githubusercontent.com/CoiledTom/GCT-Ghost-Core-Toolkit./refs/heads/main/main.lua"
+local CORE_URL = "https://raw.githubusercontent.com/CoiledTom/GCT-Ghost-Core-Toolkit/refs/heads/main/main.lua"
 ```
 
 ---
