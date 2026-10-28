@@ -1,7 +1,7 @@
 -- CoiledTom Key System | Loader: Jnkie (Public SDK)
 -- Docs: https://docs.jnkie.com/roblox-sdk/public-sdk
 
-local CORE_URL = "https://raw.githubusercontent.com/CoiledTom/GCT-Ghost-Core-Toolkit./refs/heads/main/main.lua"
+local CORE_URL = "https://raw.githubusercontent.com/CoiledTom/GCT-Ghost-Core-Toolkit/refs/heads/main/main.lua"
 
 local JNKIE = {
 	Service    = "", -- nome ou ID do servico (painel Jnkie)
