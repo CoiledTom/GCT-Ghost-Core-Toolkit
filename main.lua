@@ -841,15 +841,19 @@ local titleBar = new("Frame", { Size = UDim2.new(1, 0, 0, 54), BackgroundTranspa
 
 local brand = new("Frame", { Size = UDim2.fromOffset(34, 34), Position = UDim2.fromOffset(16, 10),
 	BackgroundColor3 = Color3.new(1, 1, 1), Parent = titleBar })
-corner(brand, 10); gradient(brand, C.Violet, C.Purple, 45); stroke(brand, C.Electric, 1, 0.55)
+corner(brand, 10)
+local brandGrad = gradient(brand, C.Violet, C.Purple, 45)
+local brandStroke = stroke(brand, C.Electric, 1, 0.55)
 local brandIcon = makeIcon(brand, Config.BrandIcon, 18, C.Text, { AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5) })
 local brandImg -- ImageLabel (criado sob demanda quando uma imagem fica disponivel)
 local function setBrandImage(asset)
 	if not asset or asset == "" then return end
 	if brandIcon then brandIcon.Visible = false end
+	brandGrad.Enabled = false -- com foto: sem fundo degrade (senao vira uma "borda" colorida ao redor da imagem)
+	brandStroke.Color = C.Stroke; brandStroke.Transparency = 0.25 -- borda fina e neutra, igual ao resto da GUI
 	if not brandImg then
-		brandImg = new("ImageLabel", { BackgroundTransparency = 1, Size = UDim2.new(1, -6, 1, -6), Position = UDim2.fromOffset(3, 3),
-			ScaleType = Enum.ScaleType.Crop, Parent = brand }, { new("UICorner", { CornerRadius = UDim.new(0, 8) }) })
+		brandImg = new("ImageLabel", { BackgroundTransparency = 1, Size = UDim2.new(1, -2, 1, -2), Position = UDim2.fromOffset(1, 1),
+			ScaleType = Enum.ScaleType.Crop, Parent = brand }, { new("UICorner", { CornerRadius = UDim.new(0, 9) }) })
 	end
 	brandImg.Image = asset
 end
@@ -1336,7 +1340,7 @@ local function InfoRow(order, iconName, imageUrl, title)
 	if imageUrl then
 		lead = new("ImageLabel", { Size = UDim2.fromOffset(34, 34), Position = UDim2.new(0, 8, 0.5, -17),
 			BackgroundColor3 = C.Field, Image = imageUrl, ScaleType = Enum.ScaleType.Crop, Parent = c })
-		corner(lead); stroke(lead, C.Violet, 1.2, 0.3)
+		corner(lead); stroke(lead, C.Stroke, 1, 0.3) -- borda fina e neutra, igual ao resto da GUI
 	else
 		local bg = new("Frame", { Size = UDim2.fromOffset(34, 34), Position = UDim2.new(0, 8, 0.5, -17),
 			BackgroundColor3 = C.Field, Parent = c })
@@ -1482,7 +1486,8 @@ local function rebuildCredits()
 			BackgroundColor3 = C.Card, LayoutOrder = i, Parent = cScroll })
 		corner(card, 12); stroke(card, C.Stroke, 1, 0.35); pad(card, 10)
 		local lead
-		if cr.Image and cr.Image ~= "" then
+		local leadIsImage = cr.Image and cr.Image ~= ""
+		if leadIsImage then
 			lead = new("ImageLabel", { Size = UDim2.fromOffset(40, 40), BackgroundColor3 = C.Field,
 				Image = normImage(cr.Image), ScaleType = Enum.ScaleType.Crop, Parent = card })
 			corner(lead)
@@ -1491,7 +1496,8 @@ local function rebuildCredits()
 			corner(lead)
 			makeIcon(lead, cr.Icon or style[2], 20, style[1], { AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5) })
 		end
-		stroke(lead, style[1], 1.2, 0.35)
+		-- foto: borda fina e neutra (igual ao resto da GUI); icone-fallback: mantem a cor do cargo
+		if leadIsImage then stroke(lead, C.Stroke, 1, 0.3) else stroke(lead, style[1], 1.2, 0.35) end
 		local right = cr.Link and cr.Link ~= "" and 40 or 0
 		local info = new("Frame", { BackgroundTransparency = 1, Position = UDim2.fromOffset(52, 0),
 			Size = UDim2.new(1, -52 - right, 0, 0), AutomaticSize = Enum.AutomaticSize.Y, Parent = card })
@@ -1539,7 +1545,7 @@ end
 local function layoutSpheres()
 	local byRing = {}
 	for i, s in ipairs(Spheres) do
-		s.ringIdx = s.Ring or math.floor((i - 1) / Config.Orbit.PerRing)
+		s.ringIdx = s.Ring or math.floor((i - 1) / math.max(1, Config.Orbit.PerRing)) -- evita divisao por zero se PerRing=0
 		byRing[s.ringIdx] = byRing[s.ringIdx] or {}
 		table.insert(byRing[s.ringIdx], s)
 	end
@@ -1559,8 +1565,7 @@ local function buildSphereGui(s)
 	corner(glow)
 	local body = new("Frame", { Size = UDim2.fromScale(1, 1), BackgroundColor3 = C.Panel, Parent = holder })
 	corner(body)
-	local st = stroke(body, Color3.new(1, 1, 1), Config.Orbit.BorderThickness, 0)
-	new("UIGradient", { Color = ColorSequence.new(s.BorderColor or C.Violet, C.Orange), Rotation = 45, Parent = st })
+	stroke(body, C.Stroke, Config.Orbit.BorderThickness, 0.25) -- borda fina e neutra (o glow atras ja da o toque de cor)
 	local img = new("ImageLabel", { AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5),
 		Size = UDim2.new(1, -4, 1, -4), BackgroundColor3 = C.Field, Image = "", ScaleType = Enum.ScaleType.Crop, Parent = body })
 	corner(img)
@@ -1617,10 +1622,14 @@ local bubblePos = UDim2.new(1, -60, 0.5, 0)
 local bubble = new("TextButton", { Text = "", AutoButtonColor = false, AnchorPoint = Vector2.new(0.5, 0.5),
 	Position = bubblePos, Size = UDim2.fromOffset(BUBBLE, BUBBLE), BackgroundColor3 = Color3.new(1, 1, 1),
 	Visible = false, ZIndex = 8, Parent = gui })
-corner(bubble); gradient(bubble, C.Violet, C.Purple, 45); stroke(bubble, C.Orange, 1.2, 0.2)
+corner(bubble)
+local bubbleGrad = gradient(bubble, C.Violet, C.Purple, 45)
+local bubbleStroke = stroke(bubble, C.Orange, 1.2, 0.2)
 local bubbleScale = new("UIScale", { Scale = 0.01, Parent = bubble })
 if Config.BrandImage ~= "" then
-	new("ImageLabel", { BackgroundTransparency = 1, Size = UDim2.new(1, -8, 1, -8), Position = UDim2.fromOffset(4, 4),
+	bubbleGrad.Enabled = false -- com foto: sem fundo degrade atras dela
+	bubbleStroke.Color = C.Stroke; bubbleStroke.Transparency = 0.25 -- borda fina e neutra, igual ao resto da GUI
+	new("ImageLabel", { BackgroundTransparency = 1, Size = UDim2.new(1, -3, 1, -3), Position = UDim2.fromOffset(1.5, 1.5),
 		Image = normImage(Config.BrandImage), ScaleType = Enum.ScaleType.Crop, Parent = bubble }, { new("UICorner", { CornerRadius = UDim.new(1, 0) }) })
 else
 	makeIcon(bubble, Config.BrandIcon, 26, C.Text, { AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5) })
@@ -1771,7 +1780,7 @@ local function openSequence()
 	corner(bar, 16)
 	local barBg = new("Frame", { Size = UDim2.fromScale(1, 1), BackgroundColor3 = C.Panel, BackgroundTransparency = 0.05,
 		BorderSizePixel = 0, Parent = bar })
-	corner(barBg, 16); stroke(barBg, C.Violet, 2.4, 0.45) -- borda dentro do grupo: some junto com o fade
+	corner(barBg, 16); stroke(barBg, C.Violet, 1.5, 0.45) -- borda dentro do grupo: some junto com o fade
 	local barText = text(bar, "Preparando interface...", 14, C.Text, Enum.Font.GothamMedium,
 		{ Position = UDim2.fromOffset(0, 16), Size = UDim2.new(1, 0, 0, 18), TextXAlignment = Enum.TextXAlignment.Center })
 	local track = new("Frame", { Position = UDim2.fromOffset(20, 48), Size = UDim2.new(1, -40, 0, 8), BackgroundColor3 = C.Field, Parent = bar })
